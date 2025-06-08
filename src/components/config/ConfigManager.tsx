@@ -1,14 +1,14 @@
 
 'use client';
 
-import type { FormEvent} from 'react';
+import type { FormEvent } from 'react';
 import { useEffect, useState } from 'react';
 import { doc, onSnapshot, setDoc, updateDoc, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { LocationItem, TypologyItem, Settings } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Label } from '@/components/ui/label'; // Label no s'utilitza directament, però pot ser útil per a futura accessibilitat
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trash2, PlusCircle, ListChecks, MapPinned } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -41,7 +41,7 @@ export default function ConfigManager() {
     }, (error) => {
         console.error("Error fetching locations:", error);
         toast({ title: "Error", description: "No s'han pogut carregar els llocs.", variant: "destructive"});
-        setLocationsLoaded(true); // Mark as loaded even on error to prevent indefinite loading
+        setLocationsLoaded(true);
     });
 
     const unsubTypologies = onSnapshot(doc(db, 'settings', 'typologies'), (docSnap) => {
@@ -54,7 +54,7 @@ export default function ConfigManager() {
     }, (error) => {
         console.error("Error fetching typologies:", error);
         toast({ title: "Error", description: "No s'han pogut carregar les tipologies.", variant: "destructive"});
-        setTypologiesLoaded(true); // Mark as loaded even on error
+        setTypologiesLoaded(true);
     });
 
     return () => {
@@ -123,7 +123,7 @@ export default function ConfigManager() {
           <CardDescription>Gestiona la llista de llocs disponibles per a les incidències.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={(e: FormEvent) => { e.preventDefault(); handleAddItem('locations', newLocationName); }} className="mb-4 flex gap-2">
+          <form onSubmit={(e: FormEvent<HTMLFormElement>) => { e.preventDefault(); handleAddItem('locations', newLocationName); }} className="mb-4 flex gap-2">
             <Input
               type="text"
               value={newLocationName}
@@ -154,7 +154,7 @@ export default function ConfigManager() {
           <CardDescription>Gestiona la llista de tipologies d'incidències.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={(e: FormEvent) => { e.preventDefault(); handleAddItem('typologies', newTypologyName); }} className="mb-4 flex gap-2">
+          <form onSubmit={(e: FormEvent<HTMLFormElement>) => { e.preventDefault(); handleAddItem('typologies', newTypologyName); }} className="mb-4 flex gap-2">
             <Input
               type="text"
               value={newTypologyName}
