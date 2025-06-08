@@ -13,6 +13,13 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID, // Optional
 };
 
+// Check if the API key is provided, as it's essential for Firebase initialization.
+if (!firebaseConfig.apiKey) {
+  throw new Error(
+    'Firebase API Key is missing. Please ensure NEXT_PUBLIC_FIREBASE_API_KEY is set in your environment variables.'
+  );
+}
+
 let app: FirebaseApp;
 if (!getApps().length) {
   app = initializeApp(firebaseConfig);
