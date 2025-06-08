@@ -27,6 +27,8 @@ export default function TicketManager() {
   const [isFilterSectionVisible, setIsFilterSectionVisible] = useState(false);
 
   const [filters, setFilters] = useState<{ status?: Status; importance?: Importance; location?: string; type?: string; searchTerm?: string }>({});
+  // sortBy state is still used for the initial Firebase query if needed, but UI for changing it is removed.
+  // Default sort by Firebase is 'createdAt', 'desc'. Client-side sort will override display order.
   const [sortBy, setSortBy] = useState<{ field: keyof Ticket; direction: 'asc' | 'desc' }>({ field: 'createdAt', direction: 'desc' });
 
   const { toast } = useToast();
@@ -36,6 +38,8 @@ export default function TicketManager() {
     if (!user) return;
     setIsLoading(true);
 
+    // Firebase query will use 'sortBy' for initial ordering.
+    // For example, by 'createdAt'. The complex client-side sort takes precedence for display.
     const ticketsQueryConstraints: QueryConstraint[] = [orderBy(sortBy.field, sortBy.direction)];
     const ticketsQuery = query(collection(db, 'tickets'), ...ticketsQueryConstraints);
     
@@ -63,8 +67,6 @@ export default function TicketManager() {
       }
     }, (error: any) => {
       console.error("Error carregant llocs (TicketManager):", error);
-      // Optionally, inform the user, though ConfigManager also handles its own errors.
-      // toast({ title: "Advertència", description: "No s'han pogut carregar els llocs per als filtres.", variant: "default" });
     });
 
     const unsubscribeTypologies = onSnapshot(doc(db, 'settings', 'typologies'), (docSnap) => {
@@ -75,8 +77,6 @@ export default function TicketManager() {
       }
     }, (error: any) => {
       console.error("Error carregant tipologies (TicketManager):", error);
-      // Optionally, inform the user
-      // toast({ title: "Advertència", description: "No s'han pogut carregar les tipologies per als filtres.", variant: "default" });
     });
 
     return () => {
@@ -84,7 +84,7 @@ export default function TicketManager() {
       unsubscribeLocations();
       unsubscribeTypologies();
     };
-  }, [user, toast, sortBy]);
+  }, [user, toast, sortBy]); // sortBy is kept here for the Firebase query
 
   const handleFormSubmit = async (ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>) => {
     if (!user) {
@@ -141,16 +141,42 @@ export default function TicketManager() {
     }
   };
   
+  const importanceOrder: Record<Importance, number> = {
+    urgent: 1,
+    important: 2,
+    low: 3,
+  };
+
   const filteredAndSortedTickets = useMemo(() => {
     let result = tickets;
-    if (filters.status) result = result.filter(t => t.status === filters.status);
+
+    if (!filters.status) {
+      result = result.filter(t => t.status !== 'solved');
+    } else if (filters.status) {
+      result = result.filter(t => t.status === filters.status);
+    }
     if (filters.importance) result = result.filter(t => t.importance === filters.importance);
-    if (filters.location) result = result.filter(t => t.location === filters.location);
-    if (filters.type) result = result.filter(t => t.type === filters.type);
+
+    if (filters.location && filters.location.length > 0) {
+      result = result.filter(t => filters.location!.includes(t.location));
+    }
+    if (filters.type && filters.type.length > 0) {
+      result = result.filter(t => filters.type!.includes(t.type));
+    }
+    
     if (filters.searchTerm) {
       const term = filters.searchTerm.toLowerCase();
       result = result.filter(t => t.description.toLowerCase().includes(term) || t.id.toLowerCase().includes(term));
     }
+
+    result.sort((a, b) => {
+      const importanceComparison = importanceOrder[a.importance] - importanceOrder[b.importance];
+      if (importanceComparison !== 0) {
+        return importanceComparison;
+      }
+      return a.location.localeCompare(b.location);
+    });
+
     return result;
   }, [tickets, filters]);
 
@@ -204,8 +230,6 @@ export default function TicketManager() {
           typologies={typologies}
           onFilterChange={setFilters}
           currentFilters={filters}
-          onSortChange={setSortBy}
-          currentSortBy={sortBy}
         />
       )}
 
@@ -222,4 +246,3 @@ export default function TicketManager() {
     </div>
   );
 }
-

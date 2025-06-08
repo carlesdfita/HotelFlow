@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, Clock, MapPin, Wrench, AlertTriangle, MoreHorizontal } from 'lucide-react'; // Importa MoreHorizontal
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 // Importa els components del Dropdown Menu
@@ -38,72 +38,80 @@ const importanceLabels: Record<Ticket['importance'], string> = {
 };
 
 export default function TicketItem({ ticket, onEdit, onDelete }: TicketItemProps) {
-  const timeAgo = ticket.createdAt ? formatDistanceToNow(ticket.createdAt.toDate(), { addSuffix: true, locale: es }) : 'Data desconeguda';
+  const formattedDate = ticket.createdAt ? format(ticket.createdAt.toDate(), 'dd/MM/yy') : 'Data desconeguda';
 
+  // Define colors for the status badge
   const statusColors = {
-    pending: { bg: 'bg-blue-100', border: 'border-blue-500', text: 'text-blue-800', iconColor: 'text-blue-600' },
-    'in-progress': { bg: 'bg-yellow-100', border: 'border-yellow-500', text: 'text-yellow-800', iconColor: 'text-yellow-600' },
+    pending: { bg: 'bg-red-100', border: 'border-red-500', text: 'text-red-800', iconColor: 'text-red-600' },
+    'in-progress': { bg: 'bg-orange-100', border: 'border-orange-500', text: 'text-orange-800', iconColor: 'text-orange-600' },
     solved: { bg: 'bg-green-100', border: 'border-green-500', text: 'text-green-800', iconColor: 'text-green-600' },
     // Add other statuses as needed
   };
 
-  const { bg, border, text, iconColor } = statusColors[ticket.status] || statusColors.pending; // Default to pending if status is not found
+  // Define text colors based on importance for the main content
+  const importanceTextColors: Record<Importance, string> = {
+    urgent: 'text-red-800', // Dark red
+    important: 'text-yellow-800', // Dark yellow
+    low: 'text-blue-800',    // Dark blue
+  };
+
   return (
-    // Card component amb flex row layout
-    <Card className={cn('flex flex-row justify-between items-center shadow-lg hover:shadow-xl transition-shadow duration-200 p-4 w-full', bg, border)}>
-      {/* Contingut principal de la incidència */}
-      <div className={cn('flex-grow space-y-2 pr-4', text)}> {/* Afegeix padding a la dreta per separar del menú */}
-         {/* Localització en negreta i al principi */}
-        <div className="flex items-center font-bold text-sm gap-2">
-            <MapPin className={cn('h-3.5 w-3.5 flex-shrink-0', iconColor)} /> {/* Eliminat mr-2 */}
+    // Card component amb flex col layout, separació inferior i padding vertical reduït, colors basats en importància
+    <Card className={cn('flex flex-col justify-between shadow-lg hover:shadow-xl transition-shadow duration-200 px-4 py-1 w-full mb-4', importanceStyles[ticket.importance].bg, importanceStyles[ticket.importance].border)}>
+      {/* Contenedor principal flex para organizar el contenido en columnas */}
+      {/* Contenidor superior per a la localització i els indicadors */}
+      <div className="flex justify-between items-center w-full mb-2"> {/* Ajustado items-center y añadido mb-2 */}
+        {/* Contenido principal (localización, descripción, tipo) - Afectado por el color de texto de importancia */}
+        <div className={cn('flex-grow space-y-1', importanceTextColors[ticket.importance])}>
+          {/* Localització en negreta i al principi */}
+          <div className="flex items-center font-bold text-sm gap-2">
+            {/* Icono de localización usa el color basado en la importancia */}
+            <MapPin className={cn('h-3.5 w-3.5 flex-shrink-0', importanceTextColors[ticket.importance])} />
             <span>{ticket.location}</span>
+          </div>
         </div>
 
-        {/* Descripció, tipus i temps */}
-        {/* Aplica line-clamp-2 a la descripció */}
-        <p className="text-sm leading-relaxed line-clamp-2">{ticket.description}</p>
-        <div className="space-y-1 text-xs opacity-90">
-          <div className="flex items-center">
-            <Wrench className={cn('mr-2 h-3.5 w-3.5 flex-shrink-0', iconColor)} />
-            <span>{ticket.type}</span>
-          </div>
-          <div className="flex items-center">
-            <Clock className={cn('mr-2 h-3.5 w-3.5 flex-shrink-0', iconColor)} />
-            <span>{timeAgo}</span>
-          </div>
-        </div>
-         {/* Badge d'estat i importància */}
-         {/* Moure badges a la part inferior del contingut principal */}
-         <div className="flex items-center gap-2 mt-2">
-          <Badge variant="outline" className={cn('text-xs', bg, text, border)}>
+        {/* Badge d'estat y importància y Dropdown - Mover aquí para estar arriba a la derecha */}
+         <div className="flex items-center gap-2">
+          {/* Badge de estado - Su color de texto se basa en el estado */}
+          <Badge variant="outline" className={cn('text-xs', statusColors[ticket.status].bg, statusColors[ticket.status].text, statusColors[ticket.status].border)}>
             {statusLabels[ticket.status]}
           </Badge>
-           <Badge variant="outline" className={cn('text-xs', bg, text, border)}>
-              <AlertTriangle className={cn('mr-1 h-3 w-3', iconColor)} />
+          {/* Badge de importancia - Su color de texto se basa en la importancia */}
+          <Badge variant="outline" className={cn('text-xs', importanceStyles[ticket.importance].bg, importanceStyles[ticket.importance].text, importanceStyles[ticket.importance].border)}>
+              <AlertTriangle className={cn('mr-1 h-3 w-3', importanceStyles[ticket.importance].iconColor)} /> {/* Corregido iconColor para usar el de importancia */}
               {importanceLabels[ticket.importance]}
-           </Badge>
-         </div>
+          </Badge>
+          {/* Menú desplegable al lado de los badges */}
+           <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0"> {/* No aplicar color de texto del estado aquí */}
+                <span className="sr-only">Obrir menú</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+      {/* Contenedor inferior para la fecha de creación - Mover aquí para estar abajo a la derecha */}
+              {/* Opciones del menú desplegable */}
+              <DropdownMenuItem onClick={() => onEdit(ticket)}> {/* Opció Editar */}
+                <Edit className="mr-2 h-4 w-4" /> Editar
+              </DropdownMenuItem>
+              {/* Opció Eliminar amb text vermell */}
+              <DropdownMenuItem onClick={() => onDelete(ticket.id)} className="text-red-600 focus:text-red-600"> {/* Posa el text en vermell */}
+                <Trash2 className="mr-2 h-4 w-4" />
+                Eliminar
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
-
-      {/* Menú desplegable amb opcions */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className={cn("h-8 w-8 p-0", text)}>
-            <span className="sr-only">Obrir menú</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => onEdit(ticket)}> {/* Opció Editar */}
-            <Edit className="mr-2 h-4 w-4" /> Editar
-          </DropdownMenuItem>
-          {/* Opció Eliminar amb text vermell */}
-          <DropdownMenuItem onClick={() => onDelete(ticket.id)} className="text-red-600 focus:text-red-600"> {/* Posa el text en vermell */}
-            <Trash2 className="mr-2 h-4 w-4" />
-            Eliminar
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {/* Contenedor para la fecha de creación - Posicionado al final del Card */}
+      <div className="flex justify-end items-center w-full text-xs opacity-90 mt-2"> {/* justify-end para alinear a la derecha, mt-2 para separación */}
+        <div className="flex items-center">
+          <Clock className={cn('mr-1 h-3 w-3 flex-shrink-0', importanceTextColors[ticket.importance])} /> {/* Icono de reloj usa el color basado en la importancia */}
+            <span>{formattedDate}</span> {/* Fecha de creación abajo a la derecha */}
+        </div>
+      </div>
     </Card>
   );
 }

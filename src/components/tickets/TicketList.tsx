@@ -13,7 +13,7 @@ export default function TicketList({ tickets, onEdit, onDelete }: TicketListProp
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div>
       {tickets.map((ticket) => (
         <TicketItem key={ticket.id} ticket={ticket} onEdit={onEdit} onDelete={onDelete} />
       ))}
