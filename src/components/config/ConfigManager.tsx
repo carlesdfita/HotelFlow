@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { FormEvent} from 'react';
@@ -22,34 +23,38 @@ export default function ConfigManager() {
   const [typologies, setTypologies] = useState<TypologyItem[]>([]);
   const [newLocationName, setNewLocationName] = useState('');
   const [newTypologyName, setNewTypologyName] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  
+  const [locationsLoaded, setLocationsLoaded] = useState(false);
+  const [typologiesLoaded, setTypologiesLoaded] = useState(false);
   const { toast } = useToast();
 
+  const isLoading = !locationsLoaded || !typologiesLoaded;
+
   useEffect(() => {
-    setIsLoading(true);
     const unsubLocations = onSnapshot(doc(db, 'settings', 'locations'), (docSnap) => {
       if (docSnap.exists()) {
         setLocations((docSnap.data() as Settings<LocationItem>).items || []);
       } else {
-        setLocations([]); // Initialize if document doesn't exist
+        setLocations([]); 
       }
-      setIsLoading(false); // Set loading to false after first fetch/check
+      setLocationsLoaded(true);
     }, (error) => {
         console.error("Error fetching locations:", error);
         toast({ title: "Error", description: "No s'han pogut carregar els llocs.", variant: "destructive"});
-        setIsLoading(false);
+        setLocationsLoaded(true); // Mark as loaded even on error to prevent indefinite loading
     });
 
     const unsubTypologies = onSnapshot(doc(db, 'settings', 'typologies'), (docSnap) => {
       if (docSnap.exists()) {
         setTypologies((docSnap.data() as Settings<TypologyItem>).items || []);
       } else {
-        setTypologies([]); // Initialize if document doesn't exist
+        setTypologies([]);
       }
-      // No setIsLoading here to avoid multiple triggers if locations is also loading
+      setTypologiesLoaded(true);
     }, (error) => {
         console.error("Error fetching typologies:", error);
         toast({ title: "Error", description: "No s'han pogut carregar les tipologies.", variant: "destructive"});
+        setTypologiesLoaded(true); // Mark as loaded even on error
     });
 
     return () => {
@@ -70,7 +75,6 @@ export default function ConfigManager() {
     try {
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        // Check for duplicates
         const currentItems = (docSnap.data() as Settings<ConfigItem>).items || [];
         if (currentItems.some(item => item.name.toLowerCase() === newItem.name.toLowerCase())) {
            toast({ title: 'Duplicat', description: `"${newItem.name}" ja existeix.`, variant: 'destructive' });

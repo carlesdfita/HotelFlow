@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { User } from 'firebase/auth';
@@ -17,20 +18,20 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true); // Renamed to avoid conflict
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      setLoading(false);
+      setAuthLoading(false);
     });
     return () => unsubscribe();
   }, []);
 
   useEffect(() => {
-    if (!loading) {
+    if (!authLoading) { // Only act once auth state is resolved
       const isAuthPage = pathname === '/login';
       if (!user && !isAuthPage) {
         router.push('/login');
@@ -38,39 +39,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         router.push('/dashboard');
       }
     }
-  }, [user, loading, router, pathname]);
+  }, [user, authLoading, router, pathname]);
 
-  if (loading) {
-    // For initial load or when auth state is changing on non-auth pages
-    const isAuthPage = pathname === '/login';
-    if (!isAuthPage) {
-        return <FullScreenLoading />;
-    }
-  }
-  
-  // Allow rendering login page even when loading to avoid flicker
-  if (pathname === '/login' && (loading || !user)) {
-    return (
-      <AuthContext.Provider value={{ user, loading }}>
-        {children}
-      </AuthContext.Provider>
-    );
+  // If initial auth state is still loading, show full screen spinner
+  if (authLoading) {
+    return <FullScreenLoading />;
   }
 
-  // For protected routes, if still loading and no user, show full screen loader
-  if (loading && !user && pathname !== '/login') {
-     return <FullScreenLoading />;
-  }
-  
-  // If not loading and no user on a protected route, redirect is handled by above useEffect.
-  // This prevents rendering children of protected routes prematurely.
-  if (!loading && !user && pathname !== '/login') {
-    return <FullScreenLoading />; // Or null, as redirect will occur.
+  // If auth is resolved, but no user and not on login page,
+  // useEffect will redirect. Show spinner during this brief period.
+  if (!user && pathname !== '/login') {
+    return <FullScreenLoading />;
   }
 
-
+  // Otherwise, auth is resolved, and we can render children.
+  // (Either user exists, or we are on /login page)
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading: authLoading }}>
       {children}
     </AuthContext.Provider>
   );
