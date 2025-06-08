@@ -23,6 +23,7 @@ export default function TicketManager() {
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
+  const [isFilterSectionVisible, setIsFilterSectionVisible] = useState(false);
 
   const [filters, setFilters] = useState<{ status?: Status; importance?: Importance; location?: string; type?: string; searchTerm?: string }>({});
   const [sortBy, setSortBy] = useState<{ field: keyof Ticket; direction: 'asc' | 'desc' }>({ field: 'createdAt', direction: 'desc' });
@@ -127,7 +128,7 @@ export default function TicketManager() {
   }, [tickets, filters]);
 
 
-  if (isLoading && tickets.length === 0) { // Show loader only on initial load or if tickets are empty
+  if (isLoading && tickets.length === 0) { 
     return (
       <div className="flex h-[calc(100vh-10rem)] items-center justify-center">
         <LoadingSpinner size={48} />
@@ -139,35 +140,47 @@ export default function TicketManager() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <h2 className="text-3xl font-bold font-headline text-primary">Gestió d'Incidències</h2>
-        <Dialog open={isFormOpen} onOpenChange={(open) => { setIsFormOpen(open); if (!open) setEditingTicket(null); }}>
-          <DialogTrigger asChild>
-            <Button size="lg" onClick={() => { setEditingTicket(null); setIsFormOpen(true); }}>
-              <PlusCircle className="mr-2 h-5 w-5" /> Nova Incidència
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-2xl">
-            <DialogHeader>
-              <DialogTitle className="font-headline text-xl">{editingTicket ? 'Editar Incidència' : 'Crear Nova Incidència'}</DialogTitle>
-            </DialogHeader>
-            <TicketForm
-              onSubmit={handleFormSubmit}
-              initialData={editingTicket}
-              locations={locations}
-              typologies={typologies}
-              onCancel={() => { setIsFormOpen(false); setEditingTicket(null); }}
-            />
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => setIsFilterSectionVisible(!isFilterSectionVisible)}
+          >
+            <Filter className="mr-2 h-5 w-5" />
+            {isFilterSectionVisible ? 'Amagar Filtres' : 'Mostrar Filtres'}
+          </Button>
+          <Dialog open={isFormOpen} onOpenChange={(open) => { setIsFormOpen(open); if (!open) setEditingTicket(null); }}>
+            <DialogTrigger asChild>
+              <Button size="lg" onClick={() => { setEditingTicket(null); setIsFormOpen(true); }}>
+                <PlusCircle className="mr-2 h-5 w-5" /> Nova Incidència
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-2xl">
+              <DialogHeader>
+                <DialogTitle className="font-headline text-xl">{editingTicket ? 'Editar Incidència' : 'Crear Nova Incidència'}</DialogTitle>
+              </DialogHeader>
+              <TicketForm
+                onSubmit={handleFormSubmit}
+                initialData={editingTicket}
+                locations={locations}
+                typologies={typologies}
+                onCancel={() => { setIsFormOpen(false); setEditingTicket(null); }}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
       
-      <TicketFilters
-        locations={locations}
-        typologies={typologies}
-        onFilterChange={setFilters}
-        currentFilters={filters}
-        onSortChange={setSortBy}
-        currentSortBy={sortBy}
-      />
+      {isFilterSectionVisible && (
+        <TicketFilters
+          locations={locations}
+          typologies={typologies}
+          onFilterChange={setFilters}
+          currentFilters={filters}
+          onSortChange={setSortBy}
+          currentSortBy={sortBy}
+        />
+      )}
 
       {isLoading && tickets.length > 0 && <div className="text-center py-4"><LoadingSpinner /> Carregant...</div>}
       {!isLoading && filteredAndSortedTickets.length === 0 && (

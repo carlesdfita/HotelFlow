@@ -45,7 +45,6 @@ export default function TicketFilters({
   currentSortBy 
 }: TicketFiltersProps) {
   const [internalFilters, setInternalFilters] = useState(currentFilters);
-  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     setInternalFilters(currentFilters);
@@ -75,11 +74,8 @@ export default function TicketFilters({
           <Filter className="mr-2 h-5 w-5 text-primary" />
           Filtres i Ordenació
         </CardTitle>
-        <Button variant="ghost" size="sm" onClick={() => setShowFilters(!showFilters)} className="md:hidden">
-          {showFilters ? 'Amagar' : 'Mostrar'} Filtres
-        </Button>
       </CardHeader>
-      <CardContent className={`p-4 space-y-4 ${showFilters ? 'block' : 'hidden md:block'}`}>
+      <CardContent className="p-4 space-y-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <div>
             <Label htmlFor="searchTerm">Cercar Descripció/ID</Label>
