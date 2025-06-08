@@ -40,6 +40,14 @@ const importanceLabels: Record<Ticket['importance'], string> = {
 export default function TicketItem({ ticket, onEdit, onDelete }: TicketItemProps) {
   const timeAgo = ticket.createdAt ? formatDistanceToNow(ticket.createdAt.toDate(), { addSuffix: true, locale: es }) : 'Data desconeguda';
 
+  const statusColors = {
+    pending: { bg: 'bg-blue-100', border: 'border-blue-500', text: 'text-blue-800', iconColor: 'text-blue-600' },
+    'in-progress': { bg: 'bg-yellow-100', border: 'border-yellow-500', text: 'text-yellow-800', iconColor: 'text-yellow-600' },
+    solved: { bg: 'bg-green-100', border: 'border-green-500', text: 'text-green-800', iconColor: 'text-green-600' },
+    // Add other statuses as needed
+  };
+
+  const { bg, border, text, iconColor } = statusColors[ticket.status] || statusColors.pending; // Default to pending if status is not found
   return (
     // Card component amb flex row layout
     <Card className={cn('flex flex-row justify-between items-center shadow-lg hover:shadow-xl transition-shadow duration-200 p-4 w-full', bg, border)}>
@@ -71,7 +79,7 @@ export default function TicketItem({ ticket, onEdit, onDelete }: TicketItemProps
             {statusLabels[ticket.status]}
           </Badge>
            <Badge variant="outline" className={cn('text-xs', bg, text, border)}>
-              <AlertTriangle className={cn('mr-1 h-3 w-3', iconColor)} /> {/* Icona més petita */}
+              <AlertTriangle className={cn('mr-1 h-3 w-3', iconColor)} />
               {importanceLabels[ticket.importance]}
            </Badge>
          </div>
