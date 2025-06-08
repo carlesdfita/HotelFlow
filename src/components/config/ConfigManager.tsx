@@ -88,8 +88,12 @@ export default function ConfigManager() {
       if (type === 'locations') setNewLocationName('');
       if (type === 'typologies') setNewTypologyName('');
     } catch (error) {
-      console.error(`Error adding ${type}:`, error);
-      toast({ title: 'Error', description: `No s'ha pogut afegir l'element.`, variant: 'destructive' });
+      console.error(`Error afegint ${type} (${name}):`, error);
+      toast({ 
+        title: 'Error', 
+        description: `No s'ha pogut afegir l'element. Revisa la consola del navegador per a més detalls (pot ser un problema de permisos de Firestore).`, 
+        variant: 'destructive' 
+      });
     }
   };
 
@@ -101,8 +105,8 @@ export default function ConfigManager() {
       await updateDoc(docRef, { items: arrayRemove(itemToDelete) });
       toast({ title: 'Element eliminat', description: `"${itemToDelete.name}" s'ha eliminat.` });
     } catch (error) {
-      console.error(`Error deleting ${type}:`, error);
-      toast({ title: 'Error', description: `No s'ha pogut eliminar l'element.`, variant: 'destructive' });
+      console.error(`Error eliminant ${type} (${itemToDelete.name}):`, error);
+      toast({ title: 'Error', description: `No s'ha pogut eliminar l'element. Revisa la consola del navegador per a més detalls.`, variant: 'destructive' });
     }
   };
 
