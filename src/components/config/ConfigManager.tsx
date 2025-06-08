@@ -8,7 +8,7 @@ import { db } from '@/lib/firebase';
 import type { LocationItem, TypologyItem, Settings } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label'; // Label no s'utilitza directament, però pot ser útil per a futura accessibilitat
+import { Label } from '@/components/ui/label'; 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trash2, PlusCircle, ListChecks, MapPinned } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -38,9 +38,15 @@ export default function ConfigManager() {
         setLocations([]); 
       }
       setLocationsLoaded(true);
-    }, (error) => {
-        console.error("Error fetching locations:", error);
-        toast({ title: "Error", description: "No s'han pogut carregar els llocs.", variant: "destructive"});
+    }, (error: any) => {
+        console.error("Error carregant llocs:", error);
+        let description = "No s'han pogut carregar els llocs. Revisa la consola del navegador per a més detalls.";
+        if (error.message && error.message.toLowerCase().includes('offline')) {
+            description = "No s'han pogut carregar els llocs perquè l'aplicació està fora de línia. Comprova la teva connexió a Internet.";
+        } else if (error.code && error.code === 'permission-denied') {
+            description = "No s'han pogut carregar els llocs per falta de permisos.";
+        }
+        toast({ title: "Error", description, variant: "destructive"});
         setLocationsLoaded(true);
     });
 
@@ -51,9 +57,15 @@ export default function ConfigManager() {
         setTypologies([]);
       }
       setTypologiesLoaded(true);
-    }, (error) => {
-        console.error("Error fetching typologies:", error);
-        toast({ title: "Error", description: "No s'han pogut carregar les tipologies.", variant: "destructive"});
+    }, (error: any) => {
+        console.error("Error carregant tipologies:", error);
+        let description = "No s'han pogut carregar les tipologies. Revisa la consola del navegador per a més detalls.";
+        if (error.message && error.message.toLowerCase().includes('offline')) {
+            description = "No s'han pogut carregar les tipologies perquè l'aplicació està fora de línia. Comprova la teva connexió a Internet.";
+        } else if (error.code && error.code === 'permission-denied') {
+             description = "No s'han pogut carregar les tipologies per falta de permisos.";
+        }
+        toast({ title: "Error", description, variant: "destructive"});
         setTypologiesLoaded(true);
     });
 
@@ -87,11 +99,17 @@ export default function ConfigManager() {
       toast({ title: 'Element afegit', description: `"${name}" s'ha afegit correctament.` });
       if (type === 'locations') setNewLocationName('');
       if (type === 'typologies') setNewTypologyName('');
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error afegint ${type} (${name}):`, error);
+      let description = `No s'ha pogut afegir l'element. Revisa la consola del navegador per a més detalls (pot ser un problema de permisos de Firestore o connectivitat).`;
+      if (error.message && error.message.toLowerCase().includes('offline')) {
+        description = "No s'ha pogut afegir l'element perquè l'aplicació està fora de línia. Comprova la teva connexió a Internet.";
+      } else if (error.code && error.code === 'permission-denied') {
+        description = "No s'ha pogut afegir l'element per falta de permisos.";
+      }
       toast({ 
         title: 'Error', 
-        description: `No s'ha pogut afegir l'element. Revisa la consola del navegador per a més detalls (pot ser un problema de permisos de Firestore).`, 
+        description, 
         variant: 'destructive' 
       });
     }
@@ -104,9 +122,15 @@ export default function ConfigManager() {
     try {
       await updateDoc(docRef, { items: arrayRemove(itemToDelete) });
       toast({ title: 'Element eliminat', description: `"${itemToDelete.name}" s'ha eliminat.` });
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error eliminant ${type} (${itemToDelete.name}):`, error);
-      toast({ title: 'Error', description: `No s'ha pogut eliminar l'element. Revisa la consola del navegador per a més detalls.`, variant: 'destructive' });
+      let description = `No s'ha pogut eliminar l'element. Revisa la consola per a més detalls.`;
+      if (error.message && error.message.toLowerCase().includes('offline')) {
+        description = "No s'ha pogut eliminar l'element perquè l'aplicació està fora de línia. Comprova la teva connexió a Internet.";
+      } else if (error.code && error.code === 'permission-denied') {
+        description = "No s'ha pogut eliminar l'element per falta de permisos.";
+      }
+      toast({ title: 'Error', description, variant: 'destructive' });
     }
   };
 

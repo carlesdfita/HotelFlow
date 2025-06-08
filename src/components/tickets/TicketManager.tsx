@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { FormEvent} from 'react';
@@ -42,9 +43,15 @@ export default function TicketManager() {
       const ticketsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Ticket));
       setTickets(ticketsData);
       setIsLoading(false);
-    }, (error) => {
-      console.error("Error fetching tickets:", error);
-      toast({ title: "Error", description: "No s'han pogut carregar les incidències.", variant: "destructive" });
+    }, (error: any) => {
+      console.error("Error carregant incidències:", error);
+      let description = "No s'han pogut carregar les incidències. Revisa la consola del navegador per a més detalls.";
+      if (error.message && error.message.toLowerCase().includes('offline')) {
+          description = "No s'han pogut carregar les incidències perquè l'aplicació està fora de línia. Comprova la teva connexió a Internet.";
+      } else if (error.code && error.code === 'permission-denied') {
+          description = "No s'han pogut carregar les incidències per falta de permisos.";
+      }
+      toast({ title: "Error", description, variant: "destructive" });
       setIsLoading(false);
     });
 
@@ -54,6 +61,10 @@ export default function TicketManager() {
       } else {
         setLocations([]);
       }
+    }, (error: any) => {
+      console.error("Error carregant llocs (TicketManager):", error);
+      // Optionally, inform the user, though ConfigManager also handles its own errors.
+      // toast({ title: "Advertència", description: "No s'han pogut carregar els llocs per als filtres.", variant: "default" });
     });
 
     const unsubscribeTypologies = onSnapshot(doc(db, 'settings', 'typologies'), (docSnap) => {
@@ -62,6 +73,10 @@ export default function TicketManager() {
       } else {
         setTypologies([]);
       }
+    }, (error: any) => {
+      console.error("Error carregant tipologies (TicketManager):", error);
+      // Optionally, inform the user
+      // toast({ title: "Advertència", description: "No s'han pogut carregar les tipologies per als filtres.", variant: "default" });
     });
 
     return () => {
@@ -92,9 +107,15 @@ export default function TicketManager() {
       }
       setEditingTicket(null);
       setIsFormOpen(false);
-    } catch (error) {
-      console.error("Error saving ticket:", error);
-      toast({ title: "Error", description: "No s'ha pogut guardar la incidència.", variant: "destructive" });
+    } catch (error: any) {
+      console.error("Error guardant la incidència:", error);
+      let description = "No s'ha pogut guardar la incidència.";
+      if (error.message && error.message.toLowerCase().includes('offline')) {
+        description = "No s'ha pogut guardar la incidència perquè l'aplicació està fora de línia. Comprova la teva connexió a Internet.";
+      } else if (error.code && error.code === 'permission-denied') {
+        description = "No s'ha pogut guardar la incidència per falta de permisos.";
+      }
+      toast({ title: "Error", description, variant: "destructive" });
     }
   };
 
@@ -108,9 +129,15 @@ export default function TicketManager() {
     try {
       await deleteDoc(doc(db, 'tickets', ticketId));
       toast({ title: 'Incidència eliminada', description: 'La incidència s\'ha eliminat correctament.' });
-    } catch (error) {
-      console.error("Error deleting ticket:", error);
-      toast({ title: "Error", description: "No s'ha pogut eliminar la incidència.", variant: "destructive" });
+    } catch (error: any) {
+      console.error("Error eliminant la incidència:", error);
+      let description = "No s'ha pogut eliminar la incidència.";
+      if (error.message && error.message.toLowerCase().includes('offline')) {
+        description = "No s'ha pogut eliminar la incidència perquè l'aplicació està fora de línia. Comprova la teva connexió a Internet.";
+      } else if (error.code && error.code === 'permission-denied') {
+        description = "No s'ha pogut eliminar la incidència per falta de permisos.";
+      }
+      toast({ title: "Error", description, variant: "destructive" });
     }
   };
   
@@ -195,3 +222,4 @@ export default function TicketManager() {
     </div>
   );
 }
+
