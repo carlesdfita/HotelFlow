@@ -69,8 +69,11 @@ export default function TicketItem({ ticket, onEdit, onDelete }: TicketItemProps
             <MapPin className={cn('h-3.5 w-3.5 flex-shrink-0', importanceTextColors[ticket.importance])} />
             <span>{ticket.location}</span>
           </div>
+          {/* Descripció de la incidència */}
+          <CardDescription className={cn('text-sm', importanceTextColors[ticket.importance])}>
+            {ticket.description}
+          </CardDescription>
         </div>
-
         {/* Badge d'estat y importància y Dropdown - Mover aquí para estar arriba a la derecha */}
          <div className="flex items-center gap-2">
           {/* Badge de estado - Su color de texto se basa en el estado */}
@@ -105,11 +108,18 @@ export default function TicketItem({ ticket, onEdit, onDelete }: TicketItemProps
           </DropdownMenu>
         </div>
       </div>
-      {/* Contenedor para la fecha de creación - Posicionado al final del Card */}
-      <div className="flex justify-end items-center w-full text-xs opacity-90 mt-2"> {/* justify-end para alinear a la derecha, mt-2 para separación */}
+      {/* Contenidor inferior per a la tipologia (esquerra) i la data de creació (dreta) */}
+      <div className="flex justify-between items-center w-full text-xs opacity-90 mt-2">
+        {/* Tipologia de la incidència com a Badge - Posicionat a la cantonada inferior esquerra */}
+        <Badge variant="outline" className={cn('text-xs w-fit', importanceStyles[ticket.importance].bg, importanceStyles[ticket.importance].text, importanceStyles[ticket.importance].border)}>
+          <Wrench className={cn('mr-1 h-3 w-3', importanceStyles[ticket.importance].iconColor)} /> {/* Icono de tipologia usa el color basado en la importancia */}
+          {ticket.type}
+        </Badge>
+
+        {/* Contenedor para la fecha de creación - Posicionado a la cantonada inferior dreta */}
         <div className="flex items-center">
           <Clock className={cn('mr-1 h-3 w-3 flex-shrink-0', importanceTextColors[ticket.importance])} /> {/* Icono de reloj usa el color basado en la importancia */}
-            <span>{formattedDate}</span> {/* Fecha de creación abajo a la derecha */}
+          <span>{formattedDate}</span> {/* Fecha de creación abajo a la derecha */}
         </div>
       </div>
     </Card>
