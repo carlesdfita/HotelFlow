@@ -13,7 +13,7 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   useSidebar,
-} from '@/components/ui/sidebar'; // Corrected import path assuming sidebar.tsx is in ui
+} from '@/components/ui/sidebar'; 
 import { Button } from '@/components/ui/button';
 
 const navItems = [
@@ -51,10 +51,10 @@ export default function AppSidebar() {
                   tooltip={item.label}
                   onClick={() => { if (isMobile) setOpen(false);}}
                 >
-                  <a>
+                  <>
                     <item.icon className="h-5 w-5" />
                     <span>{item.label}</span>
-                  </a>
+                  </>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
