@@ -2,11 +2,16 @@ import type { Ticket, Importance } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Clock, MapPin, Wrench, AlertTriangle } from 'lucide-react';
+import { Edit, Trash2, Clock, MapPin, Wrench, AlertTriangle, MoreHorizontal } from 'lucide-react'; // Importa MoreHorizontal
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+// Importa els components del Dropdown Menu
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface TicketItemProps {
   ticket: Ticket;
@@ -33,32 +38,23 @@ const importanceLabels: Record<Ticket['importance'], string> = {
 };
 
 export default function TicketItem({ ticket, onEdit, onDelete }: TicketItemProps) {
-  const { bg, text, border, iconColor } = importanceStyles[ticket.importance];
   const timeAgo = ticket.createdAt ? formatDistanceToNow(ticket.createdAt.toDate(), { addSuffix: true, locale: es }) : 'Data desconeguda';
 
   return (
-    <Card className={cn('flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-200', bg, border)}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className={cn('text-lg font-semibold font-headline leading-tight break-words', text)}>ID: {ticket.id.substring(0,6)}... </CardTitle>
-          <Badge variant="outline" className={cn('text-xs', bg, text, border)}>
-            {statusLabels[ticket.status]}
-          </Badge>
-        </div>
-        <CardDescription className={cn('text-xs pt-1', text, 'opacity-80')}>
-           <div className="flex items-center">
-             <AlertTriangle className={cn('mr-1 h-4 w-4', iconColor)} />
-             {importanceLabels[ticket.importance]}
-           </div>
-        </CardDescription>
-      </CardHeader>
-      <CardContent className={cn('flex-grow pb-4 space-y-2', text)}>
-        <p className="text-sm leading-relaxed line-clamp-3">{ticket.description}</p>
-        <div className="space-y-1 text-xs opacity-90">
-          <div className="flex items-center">
-            <MapPin className={cn('mr-2 h-3.5 w-3.5 flex-shrink-0', iconColor)} />
+    // Card component amb flex row layout
+    <Card className={cn('flex flex-row justify-between items-center shadow-lg hover:shadow-xl transition-shadow duration-200 p-4 w-full', bg, border)}>
+      {/* Contingut principal de la incidència */}
+      <div className={cn('flex-grow space-y-2 pr-4', text)}> {/* Afegeix padding a la dreta per separar del menú */}
+         {/* Localització en negreta i al principi */}
+        <div className="flex items-center font-bold text-sm gap-2">
+            <MapPin className={cn('h-3.5 w-3.5 flex-shrink-0', iconColor)} /> {/* Eliminat mr-2 */}
             <span>{ticket.location}</span>
-          </div>
+        </div>
+
+        {/* Descripció, tipus i temps */}
+        {/* Aplica line-clamp-2 a la descripció */}
+        <p className="text-sm leading-relaxed line-clamp-2">{ticket.description}</p>
+        <div className="space-y-1 text-xs opacity-90">
           <div className="flex items-center">
             <Wrench className={cn('mr-2 h-3.5 w-3.5 flex-shrink-0', iconColor)} />
             <span>{ticket.type}</span>
@@ -68,15 +64,38 @@ export default function TicketItem({ ticket, onEdit, onDelete }: TicketItemProps
             <span>{timeAgo}</span>
           </div>
         </div>
-      </CardContent>
-      <CardFooter className="flex justify-end gap-2 border-t pt-4 pb-3 px-4">
-        <Button variant="outline" size="sm" onClick={() => onEdit(ticket)} className={cn('hover:bg-opacity-20', text, border, `hover:${bg}/80`)}>
-          <Edit className="mr-1 h-4 w-4" /> Editar
-        </Button>
-        <Button variant="destructive" size="sm" onClick={() => onDelete(ticket.id)} className="bg-destructive/80 hover:bg-destructive">
-          <Trash2 className="mr-1 h-4 w-4" /> Eliminar
-        </Button>
-      </CardFooter>
+         {/* Badge d'estat i importància */}
+         {/* Moure badges a la part inferior del contingut principal */}
+         <div className="flex items-center gap-2 mt-2">
+          <Badge variant="outline" className={cn('text-xs', bg, text, border)}>
+            {statusLabels[ticket.status]}
+          </Badge>
+           <Badge variant="outline" className={cn('text-xs', bg, text, border)}>
+              <AlertTriangle className={cn('mr-1 h-3 w-3', iconColor)} /> {/* Icona més petita */}
+              {importanceLabels[ticket.importance]}
+           </Badge>
+         </div>
+      </div>
+
+      {/* Menú desplegable amb opcions */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className={cn("h-8 w-8 p-0", text)}>
+            <span className="sr-only">Obrir menú</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => onEdit(ticket)}> {/* Opció Editar */}
+            <Edit className="mr-2 h-4 w-4" /> Editar
+          </DropdownMenuItem>
+          {/* Opció Eliminar amb text vermell */}
+          <DropdownMenuItem onClick={() => onDelete(ticket.id)} className="text-red-600 focus:text-red-600"> {/* Posa el text en vermell */}
+            <Trash2 className="mr-2 h-4 w-4" />
+            Eliminar
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </Card>
   );
 }

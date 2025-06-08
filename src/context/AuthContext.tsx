@@ -18,7 +18,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [authLoading, setAuthLoading] = useState(true); // Renamed to avoid conflict
+  const [authLoading, setAuthLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    if (!authLoading) { // Only act once auth state is resolved
+    if (!authLoading) { 
       const isAuthPage = pathname === '/login';
       if (!user && !isAuthPage) {
         router.push('/login');
@@ -41,19 +41,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user, authLoading, router, pathname]);
 
-  // If initial auth state is still loading, show full screen spinner
   if (authLoading) {
     return <FullScreenLoading />;
   }
 
-  // If auth is resolved, but no user and not on login page,
-  // useEffect will redirect. Show spinner during this brief period.
-  if (!user && pathname !== '/login') {
-    return <FullScreenLoading />;
-  }
-
-  // Otherwise, auth is resolved, and we can render children.
-  // (Either user exists, or we are on /login page)
+  // En aquest punt, authLoading és false.
+  // Si !user i no estem a /login, l'useEffect s'encarregarà de la redirecció.
+  // Renderitzem els fills; DashboardLayout o altres components consumidors
+  // gestionaran els seus propis estats de càrrega o usuaris nuls si cal.
   return (
     <AuthContext.Provider value={{ user, loading: authLoading }}>
       {children}
