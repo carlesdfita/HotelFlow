@@ -18,6 +18,16 @@ if (!firebaseConfig.apiKey) {
     'Firebase API Key is missing. Please ensure NEXT_PUBLIC_FIREBASE_API_KEY is set in your environment variables.'
   );
 }
+if (!firebaseConfig.authDomain) {
+  throw new Error(
+    'Firebase Auth Domain is missing. Please ensure NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN is set in your environment variables.'
+  );
+}
+if (!firebaseConfig.projectId) {
+  throw new Error(
+    'Firebase Project ID is missing. Please ensure NEXT_PUBLIC_FIREBASE_PROJECT_ID is set in your environment variables.'
+  );
+}
 
 let app: FirebaseApp;
 if (!getApps().length) {
@@ -46,4 +56,3 @@ if (typeof window !== 'undefined') {
 }
 
 export { app, auth, db };
-
